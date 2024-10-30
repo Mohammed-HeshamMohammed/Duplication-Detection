@@ -3,13 +3,14 @@ from tkinter import filedialog
 import customtkinter as ctk
 from Processor import DataProcessor
 from PIL import Image
+import os
 
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("Duplicate Detection App")
-        self.geometry("500x375")
+        self.geometry("500x400")
 
         # Initialize file paths and processor
         self.file_path_1 = ""
@@ -17,19 +18,28 @@ class App(ctk.CTk):
         self.data_processor = DataProcessor()
 
         # Load sun and moon icons
-        self.sun_icon = ctk.CTkImage(Image.open("../icons/sun_icon.png"), size=(20, 20))
-        self.moon_icon = ctk.CTkImage(Image.open("../icons/moon_icon.png"), size=(20, 20))
+        self.sun_icon = ctk.CTkImage(Image.open("icons/sun_icon.png"), size=(20, 20))
+        self.moon_icon = ctk.CTkImage(Image.open("icons/moon_icon.png"), size=(20, 20))
 
         # Create a Frame for the Dark/Light mode toggle at the top-right corner
         top_frame = ctk.CTkFrame(self, fg_color="transparent")
         top_frame.pack(anchor="ne", padx=10, pady=10)
 
         # Add Dark Mode and Light Mode toggle buttons (only one will be visible at a time)
-        self.button_mode_toggle = ctk.CTkButton(top_frame, image=self.moon_icon, text="", width=40, fg_color="transparent", hover_color="transparent", command=self.switch_mode)
+        self.button_mode_toggle = ctk.CTkButton(
+            top_frame,
+            image=self.moon_icon,
+            text="",
+            width=40,
+            fg_color="transparent",
+            hover_color="lightgrey",
+            command=self.switch_mode
+        )
         self.button_mode_toggle.pack(side="left", padx=5)
 
-        # Start in light mode
-        self.light_mode = True
+        # Start in dark mode
+        self.light_mode = False
+        ctk.set_appearance_mode("dark")  # Set dark mode by default
         self.update_icon()
 
         # File selection buttons and labels
@@ -69,10 +79,8 @@ class App(ctk.CTk):
     def update_icon(self):
         """Update the button icon based on the current mode."""
         if self.light_mode:
-            # Show the moon icon (switch to dark mode)
             self.button_mode_toggle.configure(image=self.moon_icon)
         else:
-            # Show the sun icon (switch to light mode)
             self.button_mode_toggle.configure(image=self.sun_icon)
 
     def browse_file_1(self):
@@ -88,19 +96,44 @@ class App(ctk.CTk):
             self.label_file_2.configure(text=f"Selected: {self.file_path_2.split('/')[-1]}")
 
     def process_files(self):
-        if not self.file_path_1 or not self.file_path_2:
-            self.label_result.configure(text="Please select both files.")
+        # If only one file is selected (either file 1 or file 2), handle duplicates within that file
+        if self.file_path_1 and not self.file_path_2:
+            output_type = self.option_output_type.get()
+            try:
+                success, _, duplicates_count = self.data_processor.process_single(self.file_path_1, output_type)
+                if success:
+                    self.label_result.configure(text=f"Duplicates removed from File 1: {duplicates_count}")
+            except ValueError as e:
+                self.label_result.configure(text=f"Error: {e}")
             return
 
-        output_type = self.option_output_type.get()
+        elif not self.file_path_1 and self.file_path_2:
+            output_type = self.option_output_type.get()
+            try:
+                success, _, duplicates_count = self.data_processor.process_single(self.file_path_2, output_type)
+                if success:
+                    self.label_result.configure(text=f"Duplicates removed from File 2: {duplicates_count}")
+            except ValueError as e:
+                self.label_result.configure(text=f"Error: {e}")
+            return
 
-        # Process files and show duplicate count
-        try:
-            success, _, duplicates_count = self.data_processor.process(self.file_path_1, self.file_path_2, output_type)
-            if success:
-                self.label_result.configure(text=f"Duplicates removed: {duplicates_count}")
-        except ValueError as e:
-            self.label_result.configure(text=f"Error: {e}")
+        # If both files are selected, handle duplicates between the two files
+        if self.file_path_1 and self.file_path_2:
+            output_type = self.option_output_type.get()
+            try:
+                success, _, duplicates_count = self.data_processor.process(self.file_path_1, self.file_path_2, output_type)
+                if success:
+                    self.label_result.configure(text=f"Duplicates removed between both files: {duplicates_count}")
+            except ValueError as e:
+                self.label_result.configure(text=f"Error: {e}")
+            return
+
+        # If no files are selected, display an error
+        self.label_result.configure(text="Please select at least one file.")
+
+    def select_output_folder(self):
+        folder_selected = filedialog.askdirectory()
+        return folder_selected if folder_selected else os.getcwd()
 
 if __name__ == "__main__":
     app = App()
