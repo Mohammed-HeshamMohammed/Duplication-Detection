@@ -17,8 +17,8 @@ class App(ctk.CTk):
         self.data_processor = DataProcessor()
 
         # Load sun and moon icons
-        self.sun_icon = ctk.CTkImage(Image.open("../data/icons/sun_icon.png"), size=(20, 20))
-        self.moon_icon = ctk.CTkImage(Image.open("../data/icons/moon_icon.png"), size=(20, 20))
+        self.sun_icon = ctk.CTkImage(Image.open("../icons/sun_icon.png"), size=(20, 20))
+        self.moon_icon = ctk.CTkImage(Image.open("../icons/moon_icon.png"), size=(20, 20))
 
         # Create a Frame for the Dark/Light mode toggle at the top-right corner
         top_frame = ctk.CTkFrame(self, fg_color="transparent")
