@@ -4,6 +4,20 @@ import customtkinter as ctk
 from Processor import DataProcessor
 from PIL import Image
 import os
+import sys
+
+def resource_path(relative_path):
+    """ Get the absolute path to the resource, works for dev and PyInstaller """
+    try:
+        base_path = sys._MEIPASS  # PyInstaller temporary folder
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    full_path = os.path.join(base_path, "icons", relative_path)
+    print(f"Loading resource from: {full_path}")  # Debug print for path verification
+    return full_path
+
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -17,9 +31,9 @@ class App(ctk.CTk):
         self.file_path_2 = ""
         self.data_processor = DataProcessor()
 
-        # Load sun and moon icons
-        self.sun_icon = ctk.CTkImage(Image.open("icons/sun_icon.png"), size=(20, 20))
-        self.moon_icon = ctk.CTkImage(Image.open("icons/moon_icon.png"), size=(20, 20))
+        # Load icons with the updated path
+        self.sun_icon = ctk.CTkImage(Image.open(resource_path("sun_icon.png")), size=(20, 20))
+        self.moon_icon = ctk.CTkImage(Image.open(resource_path("moon_icon.png")), size=(20, 20))
 
         # Create a Frame for the Dark/Light mode toggle at the top-right corner
         top_frame = ctk.CTkFrame(self, fg_color="transparent")
