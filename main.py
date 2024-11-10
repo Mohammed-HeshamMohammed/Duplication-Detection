@@ -1,6 +1,6 @@
 import os
 import threading
-from tkinter import filedialog, Frame, Label
+from tkinter import filedialog
 import customtkinter as ctk
 from Processor import DataProcessor
 
@@ -8,30 +8,21 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title_bar = None
         self.title_label = None
-        self.btn_close = None
-        self.dark_to_light_phases = None
-        self.current_phase_index = None
-        self.light_to_dark_phases = None
+        self.btn_select_files = None
         self.label_file_1 = None
+        self.dark_to_light_phases = None
+        self.light_to_dark_phases = None
+        self.current_phase_index = None
         self.btn_toggle_theme = None
         self.label_file_2 = None
-        self.btn_select_files = None
         self.btn_process = None
         self.animating = None
-        self.animating = None
-        self.start_x = None
-        self.start_y = None
         self.file_paths = []
         self.option_output_type = None
         self.label_result = None
         self.btn_select_file_1 = None
         self.btn_select_file_2 = None
-
-        # Overriding default title bar
-        self.overrideredirect(True)
-        self.update()
 
         # Theme settings
         self.dark_theme = {
@@ -53,19 +44,16 @@ class App(ctk.CTk):
         # Setting up the app window
         self.configure_app()
 
-        # Container frame for main content and title bar
+        # Main frame for content
         self.main_frame = ctk.CTkFrame(self, fg_color=self.current_theme["bg"])
         self.main_frame.pack(fill="both", expand=True)
 
-        # Title bar
-        self.setup_title_bar()
+        # Add the toggle theme button to the top-right corner
+        self.setup_toggle_theme_button()
 
         # App content frame
         self.content_frame = ctk.CTkFrame(self.main_frame, fg_color=self.current_theme["bg"])
-        self.content_frame.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
-        self.main_frame.grid_rowconfigure(1, weight=1)
-        self.main_frame.grid_columnconfigure(0, weight=1)
-        self.content_frame.grid_columnconfigure(0, weight=1)
+        self.content_frame.pack(fill="both", expand=True, pady=(40, 0))
 
         # Set up the widgets in the content frame
         self.setup_widgets()
@@ -78,31 +66,16 @@ class App(ctk.CTk):
         self.title("Duplicate Detection App")
         self.resizable(True, True)
 
-    def setup_title_bar(self):
-        self.title_bar = Frame(self.main_frame, bg=self.current_theme["button_bg"], height=30)
-        self.title_bar.grid(row=0, column=0, sticky="ew")
-
-        self.title_label = Label(self.title_bar, text="Duplicate Detection App", bg=self.current_theme["button_bg"],
-                                 fg="white", font=("Arial", 12, "bold"))
-        self.title_label.pack(side="left", padx=10)
-
-        self.btn_close = ctk.CTkButton(self.title_bar, text="✕", width=10, command=self.quit,
-                                       fg_color=self.current_theme["button_bg"], text_color="white")
-        self.btn_close.pack(side="right")
-
+    def setup_toggle_theme_button(self):
         # Toggle theme button with animation phases
         self.dark_to_light_phases = ["🌑", "🌒", "🌓", "🌔", "🌕"]
         self.light_to_dark_phases = ["🌕", "🌖", "🌗", "🌘", "🌑"]
         self.current_phase_index = 0
         self.animating = False
-        self.btn_toggle_theme = ctk.CTkButton(self.title_bar, text=self.dark_to_light_phases[self.current_phase_index],
+        self.btn_toggle_theme = ctk.CTkButton(self.main_frame, text=self.dark_to_light_phases[self.current_phase_index],
                                               width=20, command=self.toggle_theme,
                                               fg_color=self.current_theme["button_bg"], text_color="white")
-        self.btn_toggle_theme.pack(side="right", padx=(0, 10))
-
-        # Make title bar draggable
-        self.title_bar.bind("<Button-1>", self.make_draggable)
-        self.title_bar.bind("<B1-Motion>", self.on_drag)
+        self.btn_toggle_theme.place(relx=0.95, rely=0.02, anchor="ne")
 
     def setup_widgets(self):
         # Centering frame within content_frame for alignment
@@ -112,7 +85,7 @@ class App(ctk.CTk):
 
         # File 1 and File 2 selection buttons
         self.btn_select_file_1 = ctk.CTkButton(self.content_frame, text="Select File 1", command=self.select_file_1,
-                                               width=150,  # Fixed width
+                                               width=150,
                                                fg_color=self.current_theme["button_bg"],
                                                hover_color=self.current_theme["button_hover"],
                                                text_color=self.current_theme["button_text"])
@@ -124,7 +97,7 @@ class App(ctk.CTk):
         self.label_file_1.grid(row=2, column=0, pady=(0, 10), sticky="n")
 
         self.btn_select_file_2 = ctk.CTkButton(self.content_frame, text="Select File 2", command=self.select_file_2,
-                                               width=150,  # Fixed width
+                                               width=150,
                                                fg_color=self.current_theme["button_bg"],
                                                hover_color=self.current_theme["button_hover"],
                                                text_color=self.current_theme["button_text"])
@@ -138,7 +111,7 @@ class App(ctk.CTk):
         # Multi-file selection button
         self.btn_select_files = ctk.CTkButton(self.content_frame, text="Select Multiple Files",
                                               command=self.select_multiple_files,
-                                              width=150,  # Fixed width
+                                              width=150,
                                               fg_color=self.current_theme["button_bg"],
                                               hover_color=self.current_theme["button_hover"],
                                               text_color=self.current_theme["button_text"])
@@ -151,7 +124,7 @@ class App(ctk.CTk):
 
         # Process button
         self.btn_process = ctk.CTkButton(self.content_frame, text="Process", command=self.process_files,
-                                         width=150,  # Fixed width
+                                         width=150,
                                          fg_color=self.current_theme["button_bg"],
                                          hover_color=self.current_theme["button_hover"],
                                          text_color=self.current_theme["button_text"])
@@ -165,9 +138,6 @@ class App(ctk.CTk):
     def apply_theme(self, theme):
         self.main_frame.configure(fg_color= theme["bg"])
         self.content_frame.configure(fg_color=theme["bg"])
-        self.title_bar.configure(bg=theme["button_bg"])
-        self.title_label.configure(bg=theme["button_bg"], fg="white")
-        self.btn_close.configure(fg_color=theme["button_bg"], text_color="white")
         self.btn_toggle_theme.configure(fg_color=theme["button_bg"], text_color="white")
 
         self.label_file_1.configure(fg_color=theme["bg"], text_color=theme["fg"])
@@ -232,22 +202,25 @@ class App(ctk.CTk):
 
         def thread_process():
             try:
-                status, processed_data, duplicates_count = DataProcessor.process_files(self.file_paths, output_type)
-                result_text = f"Processing complete. Duplicates removed: {duplicates_count}" if status else "Processing failed"
-                result_color = "green" if status else "red"
+                success, filtered_data, duplicates_count = DataProcessor.process_files(self.file_paths, output_type)
+                if success:
+                    result_text = f"Processing complete. Duplicates removed: {duplicates_count}"
+                    result_color = "green"
+                else:
+                    result_text = "Processing failed."
+                    result_color = "red"
+
                 self.after(0, lambda: self.update_label_result(result_text, result_color))
+
+                # Clear the file paths and reset file selection labels
+                self.file_paths = []
+                self.after(0, lambda: self.label_file_1.configure(text="No file selected"))
+                self.after(0, lambda: self.label_file_2.configure(text="No file selected"))
+
             except Exception as e:
                 self.after(0, lambda: self.update_label_result(f"Error: {str(e)}", "red"))
 
         threading.Thread(target=thread_process).start()
-
-    def make_draggable(self, event):
-        self.start_x, self.start_y = event.x, event.y
-
-    def on_drag(self, event):
-        x = self.winfo_pointerx() - self.start_x
-        y = self.winfo_pointery() - self.start_y
-        self.geometry(f"+{x}+{y}")
 
 
 if __name__ == "__main__":
